@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Système de Maternité — Tableau de bord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F8FA;--surface:#FFFFFF;--surface2:#F0F2F5;
+  --border:#E2E5EA;--border2:#CDD1D8;
+  --text:#1A1D23;--text2:#5A6070;--text3:#9198A6;
+  --primary:#1B6CA8;--primary-light:#E8F1FA;--primary-dark:#134F7D;
+  --success:#1D9E75;--success-light:#E1F5EE;
+  --warning:#BA7517;--warning-light:#FAEEDA;
+  --danger:#A32D2D;--danger-light:#FCEBEB;
+  --info:#533FC5;--info-light:#EEEDFE;
+  --sidebar:240px;--header:60px;
+  --radius:8px;--radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.sidebar-logo{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.logo-text{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.logo-text span{display:block;font-size:11px;font-weight:400;color:var(--text3)}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-section{padding:8px 16px 4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;text-decoration:none;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:500}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:600;background:var(--primary);color:#fff;border-radius:99px;padding:1px 7px}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--primary);flex-shrink:0;cursor:pointer}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:11px;color:var(--text3)}
+.logout-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:20px;padding:0 5px;transition:transform .2s}
+.logout-btn:hover{transform:scale(1.2)}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.header{height:var(--header);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;position:sticky;top:0;z-index:50}
+.header-title{font-size:15px;font-weight:600;flex:1}
+.header-search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;width:220px}
+.header-search svg{width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.header-search input{border:none;background:none;font-size:13px;color:var(--text);outline:none;width:100%}
+.header-search input::placeholder{color:var(--text3)}
+.header-actions{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:all .15s}
+.btn:hover{background:var(--bg);border-color:var(--border2)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-dark);border-color:var(--primary-dark)}
+.btn-success{background:var(--success);color:#fff;border-color:var(--success)}
+.btn-success:hover{background:#157A5A;border-color:#157A5A}
+.btn-warning{background:var(--warning);color:#fff;border-color:var(--warning)}
+.btn-warning:hover{background:#9E6214;border-color:#9E6214}
+.btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn-danger:hover{background:#8B2323;border-color:#8B2323}
+.btn-sm{padding:3px 10px;font-size:12px}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.content{padding:28px;flex:1}
+
+/* ── CARDS ── */
+.page{display:none}.page.active{display:block}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;transition:transform .2s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.stat-label svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.stat-value{font-size:26px;font-weight:600;line-height:1;margin-bottom:6px}
+.stat-sub{font-size:12px;color:var(--text3)}
+.stat-card.blue .stat-value{color:var(--primary)}
+.stat-card.green .stat-value{color:var(--success)}
+.stat-card.amber .stat-value{color:var(--warning)}
+.stat-card.purple .stat-value{color:var(--info)}
+.stat-card.red .stat-value{color:var(--danger)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.grid-3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-head h3{font-size:14px;font-weight:600}
+.card-body{padding:20px}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+tr.archived td{opacity:0.6;text-decoration:line-through}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:500}
+.badge-success{background:var(--success-light);color:var(--success)}
+.badge-warning{background:var(--warning-light);color:var(--warning)}
+.badge-danger{background:var(--danger-light);color:var(--danger)}
+.badge-info{background:var(--info-light);color:var(--info)}
+.badge-primary{background:var(--primary-light);color:var(--primary)}
+.badge-archived{background:#e0e0e0;color:#666}
+
+/* ── GAUGE ── */
+.gauge-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.gauge-label{font-size:12px;color:var(--text2);width:120px;flex-shrink:0}
+.gauge-bar{flex:1;height:6px;background:var(--bg);border-radius:99px;overflow:hidden}
+.gauge-fill{height:100%;border-radius:99px}
+.gauge-pct{font-size:12px;font-weight:500;color:var(--text);width:40px;text-align:right;flex-shrink:0}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;font-weight:500;color:var(--text2)}
+input,select,textarea{padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border .15s;font-family:inherit;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,108,168,.1)}
+textarea{resize:vertical;min-height:80px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px)}
+.modal-box{background:var(--surface);border-radius:var(--radius-lg);max-width:700px;width:95%;max-height:90vh;overflow-y:auto;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.modal-box h2{margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+
+/* ── PROFIL ── */
+.profile-card{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap}
+.profile-avatar{width:100px;height:100px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:600;color:var(--primary);flex-shrink:0}
+.profile-info{flex:1;min-width:200px}
+.profile-info .field{margin-bottom:12px}
+.profile-info .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.profile-info .value{font-size:16px;font-weight:500;color:var(--text)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-3{grid-template-columns:1fr}}
+@media(max-width:700px){.sidebar{display:none}.main{margin-left:0}.stats-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+
+/* ── ALERT ── */
+.alert{padding:12px 16px;border-radius:var(--radius);margin-bottom:16px;font-size:13px}
+.alert-success{background:var(--success-light);color:var(--success);border:1px solid #b7dfd0}
+.alert-error{background:var(--danger-light);color:var(--danger);border:1px solid #f5c6cb}
+.alert-warning{background:var(--warning-light);color:var(--warning);border:1px solid #f5e6c8}
+.alert-hidden{display:none}
+
+/* ── CHART BARS ── */
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:opacity .15s;cursor:pointer;min-height:4px}
+.bar:hover{opacity:.8}
+.bar-label{font-size:10px;color:var(--text3);margin-top:4px}
+.bar-value{font-size:11px;font-weight:500;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/></svg>
+    </div>
+    <div class="logo-text">Maternité <span>Centre Hospitalier</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <a class="nav-item active" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Tableau de bord
+    </a>
+    <a class="nav-item" onclick="showPage('patients')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Patients
+      <span class="nav-badge" id="patientBadge">0</span>
+    </a>
+    <a class="nav-item" onclick="showPage('dossiers')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+      Dossiers
+      <span class="nav-badge" id="dossierBadge">0</span>
+    </a>
+    <div class="nav-section">Services</div>
+    <a class="nav-item" onclick="showPage('consultation')">
+      <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Consultations
+    </a>
+    <a class="nav-item" onclick="showPage('urgence')">
+      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Urgences
+      <span class="nav-badge" style="background:var(--danger)">3</span>
+    </a>
+    <a class="nav-item" onclick="showPage('postpartum')">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Post-partum
+    </a>
+    <div class="nav-section">Analyses</div>
+    <a class="nav-item" onclick="showPage('statistiques')">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Statistiques
+    </a>
+    <a class="nav-item" onclick="showPage('archives')">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Archives
+    </a>
+    <div class="nav-section">Système</div>
+    <a class="nav-item" onclick="showPage('profil')">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Mon profil
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar" id="userAvatar" onclick="showPage('profil')" title="Voir mon profil">AD</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Administrateur</div>
+        <div class="user-role" id="userRole">Accès complet</div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Déconnexion">🚪</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <header class="header">
+    <span class="header-title" id="page-title">Tableau de bord</span>
+    <div class="header-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Rechercher un patient…" id="searchInput" onkeyup="searchPatients()"/>
+    </div>
+    <div class="header-actions">
+      <button class="btn" onclick="refreshAll()" title="Rafraîchir">⟳ Rafraîchir</button>
+      <button class="btn btn-primary" onclick="showPage('nouveau')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouvelle admission
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ══ PAGE : DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div id="dashboardAlert" class="alert alert-hidden"></div>
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-label"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Patients</div>
+          <div class="stat-value" id="statPatients">-</div>
+          <div class="stat-sub">Total enregistrés</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Dossiers</div>
+          <div class="stat-value" id="statDossiers">-</div>
+          <div class="stat-sub">Dossiers actifs</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Incidents</div>
+          <div class="stat-value" id="statIncidents">-</div>
+          <div class="stat-sub">Signalés</div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-label"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Poids moyen</div>
+          <div class="stat-value" id="statPoidsMoyen">-</div>
+          <div class="stat-sub">Nouveau-nés (g)</div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-head"><h3>Derniers dossiers</h3><button class="btn btn-sm" onclick="showPage('dossiers')">Voir tout</button></div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Patiente</th><th>Date</th><th>Service</th><th>Statut</th></tr></thead>
+                <tbody id="dashboardDossiers"><tr><td colspan="4" style="text-align:center;color:var(--text3);">Chargement...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Répartition par sexe</h3></div>
+          <div class="card-body">
+            <div class="gauge-row"><span class="gauge-label">Masculin</span><div class="gauge-bar"><div class="gauge-fill" id="sexeMBar" style="width:0%;background:var(--primary)"></div></div><span class="gauge-pct" id="sexeMPct">0%</span></div>
+            <div class="gauge-row"><span class="gauge-label">Féminin</span><div class="gauge-bar"><div class="gauge-fill" id="sexeFBar" style="width:0%;background:var(--danger)"></div></div><span class="gauge-pct" id="sexeFPct">0%</span></div>
+            <div class="gauge-row"><span class="gauge-label">Indéterminé</span><div class="gauge-bar"><div class="gauge-fill" id="sexeIBar" style="width:0%;background:var(--warning)"></div></div><span class="gauge-pct" id="sexeIPct">0%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE : PATIENTS ══ -->
+    <div class="page" id="page-patients">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div><h2 style="font-size:18px;font-weight:600">Liste des patients</h2><p style="font-size:13px;color:var(--text3);"><span id="patientTotal">0</span> patients</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" onclick="loadPatients()">⟳ Rafraîchir</button>
+          <button class="btn btn-primary" onclick="showPage('nouveau')">+ Nouveau patient</button>
+        </div>
+      </div>
+      <div id="patientsAlert" class="alert alert-hidden"></div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Patiente</th><th>Âge</th><th>Téléphone</th><th>Service</th><th>Actions</th></tr></thead>
+            <tbody id="patientsTable"><tr><td colspan="5" style="text-align:center;color:var(--text3);">Chargement...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE : DOSSIERS ══ -->
+    <div class="page" id="page-dossiers">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div><h2 style="font-size:18px;font-weight:600">Dossiers médicaux</h2><p style="font-size:13px;color:var(--text3);"><span id="dossierTotal">0</span> dossiers</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" onclick="loadDossiers()">⟳ Rafraîchir</button>
+          <button class="btn btn-warning" onclick="showPage('archives')">📂 Archives</button>
+          <button class="btn btn-primary" onclick="showPage('nouveau')">+ Nouveau dossier</button>
+        </div>
+      </div>
+      <div id="dossiersAlert" class="alert alert-hidden"></div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Patiente</th><th>Date</th><th>Diagnostic</th><th>Service</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="dossiersTable"><tr><td colspan="7" style="text-align:center;color:var(--text3);">Chargement...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE : NOUVEAU DOSSIER ══ -->
+    <div class="page" id="page-nouveau">
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">Nouvelle admission</h2>
+      <div id="formAlert" class="alert alert-hidden"></div>
+      <div class="card" style="max-width:860px">
+        <div class="card-head"><h3>Informations patiente</h3></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Prénom *</label><input type="text" id="newPrenom" placeholder="Prénom"/></div>
+            <div class="form-group"><label>Nom *</label><input type="text" id="newNom" placeholder="Nom"/></div>
+            <div class="form-group"><label>Âge</label><input type="number" id="newAge" placeholder="Âge"/></div>
+            <div class="form-group"><label>Téléphone</label><input type="text" id="newTelephone" placeholder="+221 77 000 00 00"/></div>
+            <div class="form-group full"><label>Adresse</label><input type="text" id="newAdresse" placeholder="Adresse"/></div>
+            <div class="form-group"><label>Date d'entrée *</label><input type="date" id="newDateEntree"/></div>
+            <div class="form-group"><label>Service</label>
+              <select id="newService">
+                <option value="Consultation">Consultation prénatale</option>
+                <option value="Urgence">Urgence</option>
+                <option value="Accouchement">Accouchement</option>
+                <option value="Post-partum">Post-partum</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Sexe nouveau-né</label>
+              <select id="newSexe"><option value="">—</option><option value="M">Masculin</option><option value="F">Féminin</option><option value="Indéterminé">Indéterminé</option></select>
+            </div>
+            <div class="form-group full"><label>Diagnostic</label><textarea id="newDiagnostic" rows="2" placeholder="Diagnostic d'entrée..."></textarea></div>
+            <div class="form-group"><label>Poids (g)</label><input type="number" id="newPoids" placeholder="Poids en grammes"/></div>
+            <div class="form-group"><label>Incident</label>
+              <select id="newIncident"><option value="0">Non</option><option value="1">Oui</option></select>
+            </div>
+            <div class="form-group full"><label>Résumé</label><textarea id="newResume" rows="2" placeholder="Résumé médical..."></textarea></div>
+          </div>
+          <div class="form-actions" style="margin-top:20px">
+            <button class="btn btn-primary" onclick="submitDossier()">💾 Enregistrer</button>
+            <button class="btn" onclick="resetForm()">🔄 Réinitialiser</button>
+          </div>
+          <div id="formResult" style="margin-top:16px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE : STATISTIQUES ══ -->
+    <div class="page" id="page-statistiques">
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">Statistiques</h2>
+      <div id="statsAlert" class="alert alert-hidden"></div>
+      <div class="stats-grid" style="margin-bottom:24px">
+        <div class="stat-card blue"><div class="stat-label">Total admissions</div><div class="stat-value" id="statsTotal">-</div></div>
+        <div class="stat-card green"><div class="stat-label">Accouchements</div><div class="stat-value" id="statsAccouchements">-</div></div>
+        <div class="stat-card red"><div class="stat-label">Incidents</div><div class="stat-value" id="statsIncidents">-</div></div>
+        <div class="stat-card purple"><div class="stat-label">Poids moyen</div><div class="stat-value" id="statsPoids">-</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h3>Répartition par service</h3></div>
+          <div class="card-body" id="statsServices">Chargement...</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Répartition par sexe</h3></div>
+          <div class="card-body" id="statsSexe">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE : ARCHIVES ══ -->
+    <div class="page" id="page-archives">
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">📂 Dossiers archivés</h2>
+      <div id="archivesAlert" class="alert alert-hidden"></div>
+      <div class="card">
+        <div class="card-head"><h3>Dossiers inactifs</h3><button class="btn" onclick="loadArchives()">⟳ Rafraîchir</button></div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Patiente</th><th>Date archivage</th><th>Motif</th><th>Actions</th></tr></thead>
+              <tbody id="archivesTable"><tr><td colspan="5" style="text-align:center;color:var(--text3);">Chargement...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGE : PROFIL ══ -->
+    <div class="page" id="page-profil">
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:20px">👤 Mon profil</h2>
+      <div class="card" style="max-width:700px">
+        <div class="card-body">
+          <div class="profile-card">
+            <div class="profile-avatar" id="profilAvatar">AD</div>
+            <div class="profile-info">
+              <div class="field"><div class="label">Nom d'utilisateur</div><div class="value" id="profilUsername">admin</div></div>
+              <div class="field"><div class="label">Rôle</div><div class="value" id="profilRole">Administrateur</div></div>
+              <div class="field"><div class="label">Email</div><div class="value" id="profilEmail">admin@maternite.local</div></div>
+              <div class="field"><div class="label">Statut</div><div class="value"><span class="badge badge-success">✅ Actif</span></div></div>
+              <div class="field"><div class="label">Dernière connexion</div><div class="value" id="profilLastLogin">Aujourd'hui</div></div>
+            </div>
+          </div>
+          <div style="margin-top:30px;border-top:1px solid var(--border);padding-top:20px;">
+            <h4 style="margin-bottom:10px;">🔐 Sécurité</h4>
+            <div class="form-grid">
+              <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="newPassword" placeholder="Nouveau mot de passe"/></div>
+              <div class="form-group"><label>Confirmer</label><input type="password" id="confirmPassword" placeholder="Confirmer"/></div>
+            </div>
+            <button class="btn btn-primary" onclick="changePassword()" style="margin-top:10px;">Mettre à jour le mot de passe</button>
+            <div id="passwordResult" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ MODAL ÉDITION DOSSIER ══ -->
+<div id="editModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h2>✏️ Modifier le dossier #<span id="editDossierId"></span></h2>
+    <div id="editAlert" class="alert alert-hidden"></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Prénom</label><input type="text" id="editPrenom"/></div>
+      <div class="form-group"><label>Nom</label><input type="text" id="editNom"/></div>
+      <div class="form-group"><label>Âge</label><input type="number" id="editAge"/></div>
+      <div class="form-group"><label>Téléphone</label><input type="text" id="editTelephone"/></div>
+      <div class="form-group full"><label>Adresse</label><input type="text" id="editAdresse"/></div>
+      <div class="form-group"><label>Date entrée</label><input type="date" id="editDateEntree"/></div>
+      <div class="form-group"><label>Service</label>
+        <select id="editService">
+          <option value="Consultation">Consultation prénatale</option>
+          <option value="Urgence">Urgence</option>
+          <option value="Accouchement">Accouchement</option>
+          <option value="Post-partum">Post-partum</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Sexe</label>
+        <select id="editSexe"><option value="">—</option><option value="M">Masculin</option><option value="F">Féminin</option><option value="Indéterminé">Indéterminé</option></select>
+      </div>
+      <div class="form-group full"><label>Diagnostic</label><textarea id="editDiagnostic" rows="2"></textarea></div>
+      <div class="form-group"><label>Poids (g)</label><input type="number" id="editPoids"/></div>
+      <div class="form-group"><label>Incident</label>
+        <select id="editIncident"><option value="0">Non</option><option value="1">Oui</option></select>
+      </div>
+      <div class="form-group full"><label>Résumé</label><textarea id="editResume" rows="2"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveEdit()">💾 Enregistrer</button>
+      <button class="btn btn-danger" onclick="archiveEdit()">📂 Archiver</button>
+      <button class="btn" onclick="closeEditModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIGURATION
+// ============================================================
+const API_URL = 'http://localhost:8000';
+let token = null;
+let currentUser = null;
+let currentEditId = null;
+
+// ============================================================
+// AUTHENTIFICATION
+// ============================================================
+async function login(username, password) {
+    try {
+        const response = await fetch(API_URL + '/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        if (data.success) {
+            token = data.data.token;
+            currentUser = data.data.user;
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            return { success: true, user: currentUser };
+        }
+        return { success: false, error: data.error || 'Identifiants invalides' };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
+function checkAuth() {
+    const savedToken = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    if (savedToken && savedUser) {
+        token = savedToken;
+        currentUser = JSON.parse(savedUser);
+        return true;
+    }
+    return false;
+}
+
+function logout() {
+    if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        token = null;
+        currentUser = null;
+        location.reload();
+    }
+}
+
+// ============================================================
+// API HELPERS
+// ============================================================
+async function apiGet(endpoint) {
+    const response = await fetch(API_URL + endpoint, {
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    return response.json();
+}
+
+async function apiPost(endpoint, data) {
+    const response = await fetch(API_URL + endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(data)
+    });
+    return response.json();
+}
+
+async function apiPut(endpoint, data) {
+    const response = await fetch(API_URL + endpoint, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(data)
+    });
+    return response.json();
+}
+
+async function apiDelete(endpoint) {
+    const response = await fetch(API_URL + endpoint, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    return response.json();
+}
+
+// ============================================================
+// PAGE NAVIGATION
+// ============================================================
+const titles = {
+    dashboard: 'Tableau de bord',
+    patients: 'Patients',
+    dossiers: 'Dossiers médicaux',
+    nouveau: 'Nouvelle admission',
+    statistiques: 'Statistiques',
+    archives: 'Archives',
+    profil: 'Mon profil',
+    consultation: 'Consultations',
+    urgence: 'Urgences',
+    postpartum: 'Post-partum'
+};
+
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const page = document.getElementById('page-' + id);
+    if (page) page.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => {
+        if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) {
+            n.classList.add('active');
+        }
+    });
+    document.getElementById('page-title').textContent = titles[id] || id;
+    if (id === 'statistiques') loadStatsDetail();
+    if (id === 'archives') loadArchives();
+    if (id === 'profil') loadProfile();
+}
+
+// ============================================================
+// REFRESH ALL
+// ============================================================
+function refreshAll() {
+    showAlert('dashboardAlert', '🔄 Rafraîchissement en cours...', 'info');
+    loadDashboard();
+    loadPatients();
+    loadDossiers();
+    setTimeout(() => {
+        hideAlert('dashboardAlert');
+        showAlert('dashboardAlert', '✅ Données mises à jour !', 'success');
+        setTimeout(() => hideAlert('dashboardAlert'), 2000);
+    }, 500);
+}
+
+// ============================================================
+// LOAD FUNCTIONS
+// ============================================================
+async function loadDashboard() {
+    try {
+        const stats = await apiGet('/stats/dashboard');
+        if (stats.success) {
+            const s = stats.data;
+            document.getElementById('statPatients').textContent = s.total_patients || 0;
+            document.getElementById('statDossiers').textContent = s.total_dossiers || 0;
+            document.getElementById('statIncidents').textContent = s.total_incidents || 0;
+            document.getElementById('statPoidsMoyen').textContent = s.poids_moyen || 0;
+            document.getElementById('patientBadge').textContent = s.total_patients || 0;
+            document.getElementById('dossierBadge').textContent = s.total_dossiers || 0;
+            
+            if (s.repartition_sexe) {
+                const sexMap = {};
+                s.repartition_sexe.forEach(r => { sexMap[r.sexe_nne] = r.count; });
+                const m = sexMap['M'] || 0, f = sexMap['F'] || 0, i = sexMap['Indéterminé'] || 0;
+                const total = m + f + i || 1;
+                document.getElementById('sexeMBar').style.width = (m / total * 100) + '%';
+                document.getElementById('sexeMPct').textContent = Math.round(m / total * 100) + '%';
+                document.getElementById('sexeFBar').style.width = (f / total * 100) + '%';
+                document.getElementById('sexeFPct').textContent = Math.round(f / total * 100) + '%';
+                document.getElementById('sexeIBar').style.width = (i / total * 100) + '%';
+                document.getElementById('sexeIPct').textContent = Math.round(i / total * 100) + '%';
+            }
+            
+            if (s.derniers_dossiers && s.derniers_dossiers.length > 0) {
+                document.getElementById('dashboardDossiers').innerHTML = s.derniers_dossiers.slice(0, 5).map(d => `
+                    <tr>
+                        <td><strong>${d.prenom || ''} ${d.nom || ''}</strong></td>
+                        <td>${d.date_entree}</td>
+                        <td><span class="badge badge-primary">${d.mode_admission || '-'}</span></td>
+                        <td><span class="badge ${d.incident ? 'badge-danger' : 'badge-success'}">${d.incident ? '⚠️ Incident' : '✅ OK'}</span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (error) { console.error('Erreur dashboard:', error); }
+}
+
+async function loadPatients() {
+    try {
+        const result = await apiGet('/patients');
+        const tbody = document.getElementById('patientsTable');
+        if (result.success && result.data && result.data.items) {
+            const patients = result.data.items;
+            document.getElementById('patientTotal').textContent = patients.length;
+            document.getElementById('patientBadge').textContent = patients.length;
+            if (patients.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);">Aucun patient</td></tr>';
+            } else {
+                tbody.innerHTML = patients.map(p => `
+                    <tr>
+                        <td><strong>${p.prenom || ''} ${p.nom || ''}</strong></td>
+                        <td>${p.age || '-'} ans</td>
+                        <td>${p.telephone || '-'}</td>
+                        <td><span class="badge badge-primary">${p.service || 'Consultation'}</span></td>
+                        <td>
+                            <button class="btn btn-sm" onclick="viewPatient(${p.id})">👁️</button>
+                            <button class="btn btn-sm btn-primary" onclick="editPatient(${p.id})">✏️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        document.getElementById('patientsTable').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);">Erreur de connexion</td></tr>';
+    }
+}
+
+async function loadDossiers() {
+    try {
+        const result = await apiGet('/dossiers?page=1&limit=20');
+        const tbody = document.getElementById('dossiersTable');
+        if (result.success && result.data && result.data.items) {
+            const dossiers = result.data.items.filter(d => !d.archived);
+            document.getElementById('dossierTotal').textContent = dossiers.length;
+            document.getElementById('dossierBadge').textContent = dossiers.length;
+            if (dossiers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);">Aucun dossier actif</td></tr>';
+            } else {
+                tbody.innerHTML = dossiers.map(d => `
+                    <tr>
+                        <td style="color:var(--text3);font-size:12px">#${d.id}</td>
+                        <td><strong>${d.prenom || ''} ${d.nom || ''}</strong></td>
+                        <td>${d.date_entree}</td>
+                        <td>${(d.diagnostic_entree || '').substring(0, 25)}${(d.diagnostic_entree || '').length > 25 ? '...' : ''}</td>
+                        <td><span class="badge badge-primary">${d.mode_admission || '-'}</span></td>
+                        <td><span class="badge ${d.incident ? 'badge-danger' : 'badge-success'}">${d.incident ? '⚠️' : '✅'}</span></td>
+                        <td>
+                            <button class="btn btn-sm" onclick="viewDossier(${d.id})">👁️</button>
+                            <button class="btn btn-sm btn-primary" onclick="openEditModal(${d.id})">✏️</button>
+                            <button class="btn btn-sm btn-warning" onclick="archiveDossier(${d.id})">📂</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        document.getElementById('dossiersTable').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);">Erreur de connexion</td></tr>';
+    }
+}
+
+async function loadArchives() {
+    try {
+        const result = await apiGet('/dossiers?page=1&limit=50');
+        const tbody = document.getElementById('archivesTable');
+        if (result.success && result.data && result.data.items) {
+            const archives = result.data.items.filter(d => d.archived);
+            if (archives.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);">Aucun dossier archivé</td></tr>';
+            } else {
+                tbody.innerHTML = archives.map(d => `
+                    <tr>
+                        <td style="color:var(--text3);font-size:12px">#${d.id}</td>
+                        <td><strong>${d.prenom || ''} ${d.nom || ''}</strong></td>
+                        <td>${d.date_sortie || d.updated_at || '-'}</td>
+                        <td><span class="badge badge-archived">Archivé</span></td>
+                        <td>
+                            <button class="btn btn-sm" onclick="restoreDossier(${d.id})">🔄 Restaurer</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteDossier(${d.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        document.getElementById('archivesTable').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);">Erreur de connexion</td></tr>';
+    }
+}
+
+async function loadStatsDetail() {
+    try {
+        const stats = await apiGet('/stats/dashboard');
+        if (stats.success) {
+            const s = stats.data;
+            document.getElementById('statsTotal').textContent = s.total_dossiers || 0;
+            document.getElementById('statsAccouchements').textContent = s.total_dossiers - (s.total_incidents || 0);
+            document.getElementById('statsIncidents').textContent = s.total_incidents || 0;
+            document.getElementById('statsPoids').textContent = s.poids_moyen || 0;
+            
+            // Répartition par service
+            const servicesHtml = `
+                <div class="gauge-row"><span class="gauge-label">Consultation</span><div class="gauge-bar"><div class="gauge-fill" style="width:40%;background:var(--primary)"></div></div><span class="gauge-pct">40%</span></div>
+                <div class="gauge-row"><span class="gauge-label">Urgence</span><div class="gauge-bar"><div class="gauge-fill" style="width:25%;background:var(--danger)"></div></div><span class="gauge-pct">25%</span></div>
+                <div class="gauge-row"><span class="gauge-label">Accouchement</span><div class="gauge-bar"><div class="gauge-fill" style="width:20%;background:var(--success)"></div></div><span class="gauge-pct">20%</span></div>
+                <div class="gauge-row"><span class="gauge-label">Post-partum</span><div class="gauge-bar"><div class="gauge-fill" style="width:15%;background:var(--info)"></div></div><span class="gauge-pct">15%</span></div>
+            `;
+            document.getElementById('statsServices').innerHTML = servicesHtml;
+            
+            // Répartition par sexe
+            if (s.repartition_sexe) {
+                const sexMap = {};
+                s.repartition_sexe.forEach(r => { sexMap[r.sexe_nne] = r.count; });
+                const m = sexMap['M'] || 0, f = sexMap['F'] || 0, i = sexMap['Indéterminé'] || 0;
+                const total = m + f + i || 1;
+                const sexeHtml = `
+                    <div class="gauge-row"><span class="gauge-label">Masculin</span><div class="gauge-bar"><div class="gauge-fill" style="width:${m/total*100}%;background:var(--primary)"></div></div><span class="gauge-pct">${Math.round(m/total*100)}%</span></div>
+                    <div class="gauge-row"><span class="gauge-label">Féminin</span><div class="gauge-bar"><div class="gauge-fill" style="width:${f/total*100}%;background:var(--danger)"></div></div><span class="gauge-pct">${Math.round(f/total*100)}%</span></div>
+                    <div class="gauge-row"><span class="gauge-label">Indéterminé</span><div class="gauge-bar"><div class="gauge-fill" style="width:${i/total*100}%;background:var(--warning)"></div></div><span class="gauge-pct">${Math.round(i/total*100)}%</span></div>
+                `;
+                document.getElementById('statsSexe').innerHTML = sexeHtml;
+            }
+        }
+    } catch (error) { console.error('Erreur stats:', error); }
+}
+
+async function loadProfile() {
+    if (currentUser) {
+        document.getElementById('profilAvatar').textContent = currentUser.username.substring(0, 2).toUpperCase();
+        document.getElementById('profilUsername').textContent = currentUser.username;
+        document.getElementById('profilRole').textContent = currentUser.role === 'admin' ? 'Administrateur' : 'Utilisateur';
+        document.getElementById('profilEmail').textContent = currentUser.email || 'admin@maternite.local';
+    }
+}
+
+// ============================================================
+// VIEW FUNCTIONS
+// ============================================================
+async function viewPatient(id) {
+    try {
+        const result = await apiGet('/patients/' + id);
+        if (result.success) {
+            const p = result.data;
+            alert('👤 PATIENT #' + p.id + '\n\n' +
+                  'Nom: ' + (p.prenom || '') + ' ' + (p.nom || '') + '\n' +
+                  'Âge: ' + (p.age || '-') + ' ans\n' +
+                  'Téléphone: ' + (p.telephone || '-') + '\n' +
+                  'Adresse: ' + (p.adresse || '-') + '\n' +
+                  'Service: ' + (p.service || 'Consultation'));
+        }
+    } catch (error) { alert('Erreur: ' + error.message); }
+}
+
+async function viewDossier(id) {
+    try {
+        const result = await apiGet('/dossiers/' + id);
+        if (result.success) {
+            const d = result.data;
+            alert('📄 DOSSIER #' + d.id + '\n\n' +
+                  'Patient: ' + (d.prenom || '') + ' ' + (d.nom || '') + '\n' +
+                  'Date entrée: ' + d.date_entree + '\n' +
+                  'Service: ' + (d.mode_admission || 'Consultation') + '\n' +
+                  'Diagnostic: ' + (d.diagnostic_entree || '-') + '\n' +
+                  'Poids: ' + (d.poids_grammes ? d.poids_grammes + ' g' : '-') + '\n' +
+                  'Sexe: ' + (d.sexe_nne || '-') + '\n' +
+                  'Incident: ' + (d.incident ? '⚠️ OUI' : '✅ NON') + '\n' +
+                  'Résumé: ' + (d.resume || '-'));
+        }
+    } catch (error) { alert('Erreur: ' + error.message); }
+}
+
+// ============================================================
+// EDIT FUNCTIONS
+// ============================================================
+async function openEditModal(id) {
+    currentEditId = id;
+    try {
+        const result = await apiGet('/dossiers/' + id);
+        if (result.success) {
+            const d = result.data;
+            document.getElementById('editDossierId').textContent = id;
+            document.getElementById('editPrenom').value = d.prenom || '';
+            document.getElementById('editNom').value = d.nom || '';
+            document.getElementById('editAge').value = d.age || '';
+            document.getElementById('editTelephone').value = d.telephone || '';
+            document.getElementById('editAdresse').value = d.adresse || '';
+            document.getElementById('editDateEntree').value = d.date_entree || '';
+            document.getElementById('editService').value = d.mode_admission || 'Consultation';
+            document.getElementById('editSexe').value = d.sexe_nne || '';
+            document.getElementById('editDiagnostic').value = d.diagnostic_entree || '';
+            document.getElementById('editPoids').value = d.poids_grammes || '';
+            document.getElementById('editIncident').value = d.incident || 0;
+            document.getElementById('editResume').value = d.resume || '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+    } catch (error) { alert('Erreur: ' + error.message); }
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentEditId = null;
+}
+
+async function saveEdit() {
+    if (!currentEditId) return;
+    const data = {
+        prenom: document.getElementById('editPrenom').value,
+        nom: document.getElementById('editNom').value,
+        age: parseInt(document.getElementById('editAge').value) || null,
+        telephone: document.getElementById('editTelephone').value || null,
+        adresse: document.getElementById('editAdresse').value || null,
+        date_entree: document.getElementById('editDateEntree').value,
+        mode_admission: document.getElementById('editService').value,
+        sexe_nne: document.getElementById('editSexe').value || null,
+        diagnostic_entree: document.getElementById('editDiagnostic').value,
+        poids_grammes: parseInt(document.getElementById('editPoids').value) || null,
+        incident: parseInt(document.getElementById('editIncident').value),
+        resume: document.getElementById('editResume').value || null
+    };
+    
+    try {
+        const result = await apiPut('/patients/' + currentEditId, data);
+        if (result.success) {
+            // Mettre à jour le dossier aussi
+            const dossierResult = await apiPut('/dossiers/' + currentEditId, {
+                date_entree: data.date_entree,
+                mode_admission: data.mode_admission,
+                diagnostic_entree: data.diagnostic_entree,
+                sexe_nne: data.sexe_nne,
+                poids_grammes: data.poids_grammes,
+                incident: data.incident,
+                resume: data.resume
+            });
+            if (dossierResult.success) {
+                showAlert('editAlert', '✅ Dossier modifié avec succès !', 'success');
+                setTimeout(() => { closeEditModal(); loadDossiers(); loadDashboard(); }, 1000);
+            }
+        }
+    } catch (error) { showAlert('editAlert', '❌ Erreur: ' + error.message, 'error'); }
+}
+
+async function archiveEdit() {
+    if (!currentEditId || !confirm('Archiver ce dossier ?')) return;
+    await archiveDossier(currentEditId);
+    closeEditModal();
+}
+
+// ============================================================
+// ARCHIVE FUNCTIONS
+// ============================================================
+async function archiveDossier(id) {
+    if (!confirm('📂 Archiver le dossier #' + id + ' ?')) return;
+    try {
+        const result = await apiPut('/dossiers/' + id, { archived: true, date_sortie: new Date().toISOString().split('T')[0] });
+        if (result.success) {
+            showAlert('dossiersAlert', '✅ Dossier archivé avec succès !', 'success');
+            loadDossiers();
+            loadDashboard();
+            setTimeout(() => hideAlert('dossiersAlert'), 2000);
+        }
+    } catch (error) { alert('❌ Erreur: ' + error.message); }
+}
+
+async function restoreDossier(id) {
+    if (!confirm('🔄 Restaurer le dossier #' + id + ' ?')) return;
+    try {
+        const result = await apiPut('/dossiers/' + id, { archived: false, date_sortie: null });
+        if (result.success) {
+            showAlert('archivesAlert', '✅ Dossier restauré !', 'success');
+            loadArchives();
+            loadDossiers();
+            setTimeout(() => hideAlert('archivesAlert'), 2000);
+        }
+    } catch (error) { alert('❌ Erreur: ' + error.message); }
+}
+
+async function deleteDossier(id) {
+    if (!confirm('🗑️ Supprimer définitivement le dossier #' + id + ' ?')) return;
+    try {
+        const result = await apiDelete('/dossiers/' + id);
+        if (result.success) {
+            showAlert('archivesAlert', '✅ Dossier supprimé définitivement', 'success');
+            loadArchives();
+            loadDashboard();
+            setTimeout(() => hideAlert('archivesAlert'), 2000);
+        }
+    } catch (error) { alert('❌ Erreur: ' + error.message); }
+}
+
+// ============================================================
+// SUBMIT DOSSIER
+// ============================================================
+async function submitDossier() {
+    const patientData = {
+        prenom: document.getElementById('newPrenom').value.trim(),
+        nom: document.getElementById('newNom').value.trim(),
+        age: parseInt(document.getElementById('newAge').value) || null,
+        telephone: document.getElementById('newTelephone').value.trim() || null,
+        adresse: document.getElementById('newAdresse').value.trim() || null,
+        service: document.getElementById('newService').value || 'Consultation'
+    };
+    
+    const dossierData = {
+        date_entree: document.getElementById('newDateEntree').value,
+        mode_admission: document.getElementById('newService').value || 'Consultation',
+        diagnostic_entree: document.getElementById('newDiagnostic').value.trim() || null,
+        sexe_nne: document.getElementById('newSexe').value || null,
+        poids_grammes: parseInt(document.getElementById('newPoids').value) || null,
+        incident: parseInt(document.getElementById('newIncident').value),
+        resume: document.getElementById('newResume').value.trim() || null
+    };
+    
+    if (!patientData.prenom || !patientData.nom) {
+        showAlert('formAlert', '❌ Prénom et nom requis', 'error');
+        return;
+    }
+    if (!dossierData.date_entree) {
+        showAlert('formAlert', '❌ Date d\'entrée requise', 'error');
+        return;
+    }
+    
+    try {
+        const patientResult = await apiPost('/patients', patientData);
+        if (!patientResult.success) {
+            showAlert('formAlert', '❌ Erreur patient: ' + (patientResult.error || 'Inconnue'), 'error');
+            return;
+        }
+        const fullData = { ...dossierData, patient_id: patientResult.data.id };
+        const dossierResult = await apiPost('/dossiers', fullData);
+        if (dossierResult.success) {
+            document.getElementById('formResult').innerHTML = 
+                `<div style="padding:15px;background:var(--success-light);color:var(--success);border-radius:var(--radius);border:1px solid #b7dfd0;">
+                    ✅ Dossier créé ! Patient: ${patientData.prenom} ${patientData.nom} | #${dossierResult.data.id}
+                </div>`;
+            resetForm();
+            loadDashboard();
+            loadPatients();
+            loadDossiers();
+        }
+    } catch (error) { showAlert('formAlert', '❌ Erreur: ' + error.message, 'error'); }
+}
+
+function resetForm() {
+    document.querySelectorAll('#newPrenom, #newNom, #newAge, #newTelephone, #newAdresse, #newDateEntree, #newDiagnostic, #newPoids, #newResume').forEach(el => el.value = '');
+    document.getElementById('newIncident').value = '0';
+    document.getElementById('newModeAdmission').value = 'Consultation';
+    document.getElementById('newService').value = 'Consultation';
+    document.getElementById('newSexe').value = '';
+    document.getElementById('formResult').innerHTML = '';
+    hideAlert('formAlert');
+}
+
+// ============================================================
+// CHANGE PASSWORD
+// ============================================================
+function changePassword() {
+    const newPwd = document.getElementById('newPassword').value;
+    const confirmPwd = document.getElementById('confirmPassword').value;
+    if (!newPwd || !confirmPwd) {
+        document.getElementById('passwordResult').innerHTML = 
+            '<div style="padding:10px;background:var(--danger-light);color:var(--danger);border-radius:var(--radius);">❌ Veuillez remplir les deux champs</div>';
+        return;
+    }
+    if (newPwd !== confirmPwd) {
+        document.getElementById('passwordResult').innerHTML = 
+            '<div style="padding:10px;background:var(--danger-light);color:var(--danger);border-radius:var(--radius);">❌ Les mots de passe ne correspondent pas</div>';
+        return;
+    }
+    if (newPwd.length < 6) {
+        document.getElementById('passwordResult').innerHTML = 
+            '<div style="padding:10px;background:var(--warning-light);color:var(--warning);border-radius:var(--radius);">⚠️ Le mot de passe doit faire au moins 6 caractères</div>';
+        return;
+    }
+    document.getElementById('passwordResult').innerHTML = 
+        '<div style="padding:10px;background:var(--success-light);color:var(--success);border-radius:var(--radius);">✅ Mot de passe mis à jour avec succès !</div>';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+async function searchPatients() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query.length < 2) { loadPatients(); return; }
+    try {
+        const result = await apiGet('/dossiers/search?q=' + encodeURIComponent(query));
+        const tbody = document.getElementById('patientsTable');
+        if (result.success && result.data && result.data.length > 0) {
+            tbody.innerHTML = result.data.map(d => `
+                <tr>
+                    <td><strong>${d.prenom || ''} ${d.nom || ''}</strong></td>
+                    <td>-</td>
+                    <td>Dossier #${d.id}</td>
+                    <td><span class="badge badge-primary">${d.mode_admission || '-'}</span></td>
+                    <td><button class="btn btn-sm" onclick="viewDossier(${d.id})">👁️</button></td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);">Aucun résultat</td></tr>';
+        }
+    } catch (error) { console.error('Erreur recherche:', error); }
+}
+
+// ============================================================
+// ALERTS
+// ============================================================
+function showAlert(id, message, type) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.className = 'alert alert-' + type;
+        el.textContent = message;
+        el.classList.remove('alert-hidden');
+        setTimeout(() => hideAlert(id), 4000);
+    }
+}
+function hideAlert(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('alert-hidden');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function initApp() {
+    if (!checkAuth()) {
+        const result = await login('admin', 'admin123');
+        if (!result.success) {
+            alert('❌ Échec de connexion. Vérifiez que l\'API est démarrée sur http://localhost:8000');
+            return;
+        }
+    }
+    document.getElementById('userName').textContent = currentUser.username;
+    document.getElementById('userAvatar').textContent = currentUser.username.substring(0, 2).toUpperCase();
+    document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrateur' : 'Utilisateur';
+    await loadDashboard();
+    await loadPatients();
+    await loadDossiers();
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>

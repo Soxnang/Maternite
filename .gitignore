@@ -1,0 +1,39 @@
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Backups
+backup/
+*.tar.gz
+*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PHP
+api/vendor/
+composer.phar
+
+# Node
+node_modules/
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# Database
+*.sqlite
+*.db

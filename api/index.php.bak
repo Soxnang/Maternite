@@ -1,0 +1,206 @@
+<?php
+/**
+ * Point d'entrée principal de l'API
+ * Route: /api/{route}
+ */
+
+// Activer les erreurs en développement
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Headers CORS
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Max-Age: 3600");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+// Gestion des requêtes OPTIONS
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// Chargement des dépendances
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/config/auth.php';
+
+// Autoloader personnalisé pour les controllers
+spl_autoload_register(function ($class) {
+    $prefix = 'App\\';
+    $base_dir = __DIR__ . '/';
+    
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+    
+    $relative_class = substr($class, $len);
+    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+    
+    if (file_exists($file)) {
+        require $file;
+    }
+});
+
+// Routing
+$route = isset($_GET['route']) ? $_GET['route'] : '';
+$method = $_SERVER['REQUEST_METHOD'];
+$input = json_decode(file_get_contents('php://input'), true);
+
+// Parse URL
+$uri_parts = explode('/', $route);
+$resource = isset($uri_parts[0]) ? $uri_parts[0] : '';
+$id = isset($uri_parts[1]) ? $uri_parts[1] : null;
+$action = isset($uri_parts[2]) ? $uri_parts[2] : null;
+
+// Router
+try {
+    $db = App\Config\Database::getConnection();
+    
+    // Route de test
+    if ($resource === 'test' && $id === 'db') {
+        $test = App\Config\Database::testConnection();
+        echo json_encode($test);
+        exit();
+    }
+    
+    switch ($resource) {
+        case 'auth':
+            $controller = new App\Controllers\AuthController($db);
+            if ($id === 'login' && $method === 'POST') {
+                echo $controller->login($input);
+            } elseif ($id === 'logout' && $method === 'POST') {
+                echo $controller->logout();
+            } elseif ($id === 'me' && $method === 'GET') {
+                echo $controller->me();
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => 'Route non trouvée']);
+            }
+            break;
+            
+        case 'dossiers':
+            $controller = new App\Controllers\DossierController($db);
+            switch ($method) {
+                case 'GET':
+                    if ($id) {
+                        echo $controller->getOne($id);
+                    } elseif ($action === 'search') {
+                        echo $controller->search($_GET['q'] ?? '');
+                    } else {
+                        $page = $_GET['page'] ?? 1;
+                        $limit = $_GET['limit'] ?? 20;
+                        echo $controller->getAll($page, $limit);
+                    }
+                    break;
+                case 'POST':
+                    echo $controller->create($input);
+                    break;
+                case 'PUT':
+                    echo $controller->update($id, $input);
+                    break;
+                case 'DELETE':
+                    echo $controller->delete($id);
+                    break;
+                default:
+                    http_response_code(405);
+                    echo json_encode(['error' => 'Méthode non autorisée']);
+            }
+            break;
+            
+        case 'patients':
+            $controller = new App\Controllers\PatientController($db);
+            switch ($method) {
+                case 'GET':
+                    if ($id) {
+                        echo $controller->getOne($id);
+                    } else {
+                        echo $controller->getAll();
+                    }
+                    break;
+                case 'POST':
+                    echo $controller->create($input);
+                    break;
+                case 'PUT':
+                    echo $controller->update($id, $input);
+                    break;
+                case 'DELETE':
+                    echo $controller->delete($id);
+                    break;
+                default:
+                    http_response_code(405);
+                    echo json_encode(['error' => 'Méthode non autorisée']);
+            }
+            break;
+            
+        case 'stats':
+            $controller = new App\Controllers\StatistiqueController($db);
+            if ($id === 'dashboard') {
+                echo $controller->getDashboard();
+            } elseif ($id === 'incidents') {
+                echo $controller->getIncidents();
+            } else {
+                echo $controller->getAll();
+            }
+            break;
+            
+        case 'export':
+            $controller = new App\Controllers\ExportController($db);
+            if ($id === 'pdf' && $action) {
+                echo $controller->exportPDF($action);
+            } elseif ($id === 'excel') {
+                echo $controller->exportExcel($_GET);
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => 'Export non disponible']);
+            }
+            break;
+            
+        case 'admin':
+            if ($id === 'users') {
+                $controller = new App\Controllers\AdminController($db);
+                switch ($method) {
+                    case 'GET':
+                        echo $controller->getUsers();
+                        break;
+                    case 'POST':
+                        echo $controller->createUser($input);
+                        break;
+                    case 'PUT':
+                        echo $controller->updateUser($id, $input);
+                        break;
+                    case 'DELETE':
+                        echo $controller->deleteUser($id);
+                        break;
+                    default:
+                        http_response_code(405);
+                        echo json_encode(['error' => 'Méthode non autorisée']);
+                }
+            } elseif ($id === 'logs') {
+                $controller = new App\Controllers\AdminController($db);
+                echo $controller->getLogs();
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => 'Route admin non trouvée']);
+            }
+            break;
+            
+        default:
+            http_response_code(404);
+            echo json_encode([
+                'error' => 'Route non trouvée',
+                'available_routes' => [
+                    'auth', 'dossiers', 'patients', 'stats', 'export', 'admin', 'test'
+                ]
+            ]);
+    }
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'error' => 'Erreur serveur',
+        'message' => $e->getMessage()
+    ]);
+}
+?>

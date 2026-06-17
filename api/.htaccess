@@ -1,0 +1,22 @@
+# API .htaccess
+RewriteEngine On
+RewriteBase /api/
+
+# Permettre les requêtes CORS
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+
+# Gérer les requêtes OPTIONS (préflight)
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Réécriture pour l'API - PASSER LA ROUTE
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+
+# Protection du dossier vendor
+<IfModule mod_rewrite.c>
+    RewriteRule ^vendor/.*$ - [F,L]
+</IfModule>

@@ -1,0 +1,21 @@
+{
+    "name": "maternite/api",
+    "description": "API pour la gestion de maternité",
+    "type": "project",
+    "require": {
+        "php": "^7.4|^8.0",
+        "firebase/php-jwt": "^5.5",
+        "phpoffice/phpspreadsheet": "^1.28",
+        "dompdf/dompdf": "^2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "./"
+        }
+    }
+}
